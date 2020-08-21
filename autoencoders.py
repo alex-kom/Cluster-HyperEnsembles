@@ -8,7 +8,7 @@ class Autoencoder:
     '''
     Autoencoder model with dense hidden layers.
 
-    Parameters:
+    Arguments:
         layer_dims : array-like of int
             The size of the dense layers. The last value is the dimensionality
             of the encoder.
@@ -79,7 +79,7 @@ class Autoencoder:
         '''
         Fit an autoencoder model on data.
 
-        Parameters:
+        Arguments:
             X : ndarray of shape (n_observations, n_features)
                 The data to fit the model.
         '''
@@ -94,12 +94,12 @@ class Autoencoder:
         '''
         Encode data with the fitted model.
 
-        Parameters:
+        Arguments:
             X : ndarray of shape (n_observations, n_features)
                 The data to be encoded.
 
         Returns:
-            X_encoded: ndarray of (n_observations, h_dim)
+            X_encoded : ndarray of (n_observations, h_dim)
                 The encoded data.
         '''
         return self.encoder.predict(X)
@@ -108,12 +108,12 @@ class Autoencoder:
         '''
         Decode data with the fitted model.
 
-        Parameters:
+        Arguments:
             X : ndarray of shape (n_observations, h_dim)
                 The data to be decoded.
 
         Returns:
-            X_decoded: ndarray of (n_observations, n_features)
+            X_decoded : ndarray of (n_observations, n_features)
                 The decoded data.
         '''
         return self.decoder.predict(X)
@@ -122,12 +122,12 @@ class Autoencoder:
         '''
         Encode and decode data with the fitted model.
 
-        Parameters:
+        Arguments:
             X : ndarray of shape (n_observations, n_features)
                 The data to be reconstructed.
 
         Returns:
-            X_reconstructed: ndarray of (n_observations, n_features)
+            X_rec : ndarray of (n_observations, n_features)
                 The reconstructed data.
         '''
         return self.model.predict(X)
@@ -137,15 +137,15 @@ class ConvolutionalAutoencoder:
     '''
     Convolutional autoencoder model.
 
-    Parameters:
-        kernel_shapes : list of tuples of ints.
+    Arguments:
+        kernel_shapes : List of tuples of ints.
             The shapes of the convolution layer kernels. Each shape is of the
-            form (width, height, number of filters).
+            form (height, width, number of filters).
         h_dim : int
             The dimensionality of the encoder.
         strides: int or array-like of ints.
             The stride for each convolution layer.
-        initializer: str
+        initializer : str
             Initializer of the convolution layers.
         activation : str
             Activation of the convolution layers.
@@ -200,8 +200,8 @@ class ConvolutionalAutoencoder:
     def _build_encoder(self):
         x = Input(shape=self.img_shape)
         z = x
-        for i, (w, h, k) in enumerate(self.kernel_shapes):
-            z = Conv2D(k, (w, h),
+        for i, (h, w, k) in enumerate(self.kernel_shapes):
+            z = Conv2D(k, (h, w),
                        strides=self.strides[i],
                        padding='same',
                        kernel_initializer=self.initializer,
@@ -219,10 +219,10 @@ class ConvolutionalAutoencoder:
         y = Reshape(last_shape)(y)
 
         for i in reversed(range(len(self.kernel_shapes))):
-            w, h = self.kernel_shapes[i][:2]
+            h, w = self.kernel_shapes[i][:2]
             k = self.kernel_shapes[i-1][-1] if i else self.img_shape[-1]
             activation = self.activation if i else self.output_activation
-            y = Conv2DTranspose(k, (w, h),
+            y = Conv2DTranspose(k, (h, w),
                                 strides=self.strides[i],
                                 padding='same',
                                 kernel_initializer=self.initializer,
@@ -252,8 +252,8 @@ class ConvolutionalAutoencoder:
         '''
         Fit a convolutional autoencoder on data.
 
-        Parameters:
-            X : ndarray of shape (n_observations, width, height, channels)
+        Arguments:
+            X : ndarray of shape (n_observations, height, width, channels)
                 The data to fit the model.
         '''
         self.img_shape = X.shape[1:]
@@ -267,12 +267,12 @@ class ConvolutionalAutoencoder:
         '''
         Encode data with the fitted model.
 
-        Parameters:
-            X : ndarray of shape (n_observations, width, height, channels)
+        Arguments:
+            X : ndarray of shape (n_observations, height, width, channels)
                 The data to be encoded.
 
         Returns:
-            X_encoded: ndarray of (n_observations, h_dim)
+            X_encoded : ndarray of (n_observations, h_dim)
                 The encoded data.
         '''
         return self.encoder.predict(X)
@@ -281,12 +281,12 @@ class ConvolutionalAutoencoder:
         '''
         Decode data with the fitted model.
 
-        Parameters:
+        Arguments:
             X : ndarray of shape (n_observations, h_dim)
                 The data to be decoded.
 
         Returns:
-            X_decoded: ndarray of (n_observations, width, height, channels)
+            X_decoded : ndarray of (n_observations, height, width, channels)
                 The decoded data.
         '''
         return self.decoder.predict(X)
@@ -295,12 +295,12 @@ class ConvolutionalAutoencoder:
         '''
         Encode and decode data with the fitted model.
 
-        Parameters:
-            X : ndarray of shape (n_observations, width, height, channels)
+        Arguments:
+            X : ndarray of shape (n_observations, height, width, channels)
                 The data to be reconstructed.
 
         Returns:
-            X_reconstructed: ndarray of (n_observations, width, height, channels)
+            X_rec : ndarray of (n_observations, height, width, channels)
                 The reconstructed data.
         '''
         return self.model.predict(X)

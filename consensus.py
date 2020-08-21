@@ -7,39 +7,36 @@ from evaluation import Scorer
 
 class Consensus:
     '''
-    Estimate a cluster ensemble from samples produced by a ClusterGenerator.
+    Fit a cluster ensemble model by aggregating cluster assignments of
+    randomized clusterings.
 
-    The ensemble is estimated by fitting a consensus similarity matrix from
+    The randomized clusterings are produced by a ClusterGenerator object.
+    The ensemble is fitted by computing a consensus similarity matrix from
     cluster assignments. The final clustering is performed by hierarchical
     agglomerative clustering on the consensus simililarity matrix.
-    The number of clusters is estimated using the silhouette score.
-    
-    Parameters:
+    The silhouette score is used to estimate the number of clusters.
+
+    Arguments:
         X : ndarray of shape (n_observations, n_features).
             The data to be clustered.
         options : dict
-            A dict specifying the parameter values for the clustering
+            Dict specifying the parameter values for the clustering
             algorithms, the feature transformations, the distance metrics,
             and the data subsampling rate. Values of type dict specify
-            a categorical distribution to sample from.
+            a categorical distribution over possible values.
         parameters : dict
-            A dict specifying the required parameters for the clustering
+            Dict specifying the required parameters for the clustering
             algorithms, feature transformations and distance metrics.
             Extends and/or overwrites the default parameters.
         definitions : dict
-            A dict mapping function names of clustering algorithms,
+            Dict mapping function names of clustering algorithms,
             feature transformations, and distance metrics to function
-            definitions. Extends and/or overwrites the default definitions.
+            objects. Extends and/or overwrites the default definitions.
         features : dict
-            A dict mapping feature config strings to feature matrices.
-            Feature configs consist of a 'transformation' key with the name of
-            the transformation as the value and a
-            key with a dictionary mapping parameter names to parameter values.
+            Dict mapping feature config strings to feature matrices.
             Feature matrices are ndarrays of shape (n_observations, n_features).
         distances : dict
-            A dict mapping distance config strings to distance matrices.
-            Distance configs contain a 'transformation',
-            'transformation_parameters', 'metric' and 'metric_parameters'.
+            Dict mapping distance config strings to distance matrices.
             Distance matrices are ndarrays of shape
             (n_observations, n_observations).
         precompute : {'features', 'distances', None}
@@ -47,20 +44,19 @@ class Consensus:
             are precomputed and stored in the features dictionary.
             If 'distances', all feature transformations and all distances
             are precomputed and stored in the distances dictionary.
-        n_samples: int
+        n_samples : int
             The number of clusterings to be sampled for the consensus.
         mode : {'similarity', 'clustering'}
             If 'similarity', only the consensus similarity matrix will
             be estimated. If 'clustering', the consensus similarity
             matrix will be used to fit a hierarchical agglomerative clustering
-            model and the silhouette score will be used to estimate the number
+            model and the silhouette score will be used to choose the number
             of clusters.
         linkage : {'average', 'single'}
             The linkage used in the hierarchical agglomerative clustering of the
-            consensus similarity matrix.
+            consensus matrix.
         verbose : Boolean
-            If True, a message of progress made will be printed during
-            estimation.
+            If True, a message of progress will be printed during estimation.
     '''
 
     def __init__(self,
@@ -135,8 +131,8 @@ class Consensus:
     def _get_nclusters(self):
         n_clusters = self.generator.configs.options.get('n_clusters', None)
         if isinstance(n_clusters, dict):
-            if 'min_val' in n_clusters and 'max_val' in n_clusters:
-                return range(n_clusters['min_val'], n_clusters['max_val'])
+            if 'irange' in n_clusters:
+                return range(*n_clusters['irange'])
             if 'choices' in n_clusters:
                 return n_clusters['choices']
         if isinstance(n_clusters, int):
@@ -144,8 +140,8 @@ class Consensus:
 
     def fit(self):
         '''
-        Compute a consensus clustering model.
-        
+        Fit a consensus clustering model.
+
         Return the consensus similarity matrix if mode == 'similarity' or an
         AgglomerativeClustering object fitted on the consensus similarity
         matrix if mode == 'cluster'.
@@ -170,8 +166,7 @@ class Consensus:
 
         if self.mode == 'similarity':
             return self.consensus_matrix
-        
+
 
 def _get_product_indexes(x, y):
     return np.tile(x, len(y)), np.repeat(y, len(x))
-

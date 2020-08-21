@@ -8,7 +8,7 @@ from sklearn import datasets, preprocessing
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 from consensus import Consensus
-from evaluation import ground_truth_metrics, consensus_metrics
+from evaluation import Evaluator, ground_truth_metrics, consensus_metrics
 from autoencoders import Autoencoder, ConvolutionalAutoencoder
 
 
@@ -19,7 +19,7 @@ def print_metrics(metrics):
 
 def mnist_cae(params, X):
     '''
-    Fit a ConvolutionalAutoencoder and return encoded and l2-normalized data.
+    Fit a ConvolutionalAutoencoder and return l2-normalized encoded data.
     '''
     X = X / 255.
     X = X.reshape(-1, 28, 28, 1)
@@ -34,8 +34,7 @@ def mnist_cae(params, X):
 
 def tfidf_ae(params, X):
     '''
-    Fit an Autoencoder on tf-idf transformed features and return encoded
-    and l2-normalized data.
+    Fit an Autoencoder on tfidf features and return l2-normalized encoded data.
     '''
     X = TfidfTransformer(sublinear_tf=True).fit_transform(X).toarray()
     ae = Autoencoder(**params)
@@ -47,19 +46,20 @@ def tfidf_ae(params, X):
 
 def cluster_artificial():
     '''
-    Generate and cluster artificial data, print evaluation metrics and plot
-    the clustered data.
+    Cluster artificial data with a cluster ensemble.
 
     Based on the clustering comparison from
     https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
+    The same options are used for all 6 generated datasets. Each clustering
+    is plotted and evaluated.
     '''
     options = {'model': {'choices': ['hacsingle', 'hacaverage',
                                      'kmeans', 'dbscan']},
                'metric': 'rbf',
                'gamma': {'choices': [0.001, 0.01, 0.1, 1.]},
-               'n_clusters': {'min_val': 2, 'max_val': 20},
+               'n_clusters': {'irange': [2, 20]},
                'eps': {'choices': [0.1, 0.5, 1.]},
-               'min_samples': {'min_val': 5, 'max_val': 20},
+               'min_samples': {'irange': [5, 20]},
                'data_subsampling_rate': 0.2}
 
     n_samples = 1500
@@ -101,8 +101,12 @@ def cluster_artificial():
 
 def cluster_mnist():
     '''
-    Download and cluster the test subset of mnist with a cluster ensemble.
-    Print evaluation metrics for the ensemble and for a kmeans baseline.
+    Cluster the test subset of mnist with a cluster ensemble.
+
+    The ensemble uses a custom convolutional autoencoder transformation with
+    varying latent code dimensionality. The transformation function is passed
+    to the definitions dict and its parameters specified in the parameters dict.
+    Evaluation metrics are computed for the ensemble and for a kmeans baseline.
     '''
     r = requests.get('https://s3.amazonaws.com/img-datasets/mnist.npz')
     data = np.load(BytesIO(r.content))
@@ -115,7 +119,7 @@ def cluster_mnist():
                'transformation': 'mnist_cae',
                'metric': 'rbf',
                'gamma': {'choices': [0.001, 0.01, 0.1, 1.]},
-               'n_clusters': {'min_val': 2, 'max_val': 50},
+               'n_clusters': {'irange': [2, 50]},
                'h_dim': {'choices': [16, 24, 32]},
                'data_subsampling_rate': 0.2
                }
@@ -126,6 +130,7 @@ def cluster_mnist():
                           definitions=definitions,
                           precompute='distances')
     consensus.fit()
+    print('CONSENSUS RESULTS')
     print_metrics(consensus_metrics(consensus, y))
 
     # kmeans baseline with 10 clusters
@@ -135,12 +140,19 @@ def cluster_mnist():
                        'transformation_parameters': {'h_dim': 24},
                        'sample_indexes': None}
     baseline_model = consensus.generator.cluster(baseline_config)['model']
+    print('BASELINE RESULTS')
     print_metrics(ground_truth_metrics(y, baseline_model.labels_))
 
 def cluster_newsgroups():
     '''
-    Download and cluster the test subset of 20 newsgroups with a cluster
-    ensemble. Print evaluation metrics for the ensemble and for a kmeans baseline.
+    Evaluate clustering configurations on the 20newsgroups dataset.
+
+    A custom transformation consisting of tfidf transformation, an autoencoder
+    and l2 normalization is used. The custom transformation function is
+    passed to the definitions dict and its parameters specified in the
+    paramaters dict. A random search for the optimal number of clusters and
+    number of hidden layers of the autoencoder is performed using silhouette
+    score as the evaluation metric.
     '''
     data = datasets.fetch_20newsgroups(subset='test',
                                        remove=('headers', 'footers', 'quotes'))
@@ -149,30 +161,22 @@ def cluster_newsgroups():
 
     options = {'model': 'mbkmeans',
                'transformation': 'tfidf_ae',
-               'n_clusters': {'min_val': 2, 'max_val': 50},
-               'layer_dims': {'choices':[(512, 512, 512, 32),
-                                         (512, 512, 512, 48),
-                                         (512, 512, 512, 64)]},
-               'data_subsampling_rate': 0.2}
+               'n_clusters': {'irange': [10, 40]},
+               'layer_dims': {'choices':[(512, 50),
+                                         (512, 512, 50),
+                                         (512, 512, 512, 50)]}}
     parameters = {'tfidf_ae': ['layer_dims']}
     definitions = {'tfidf_ae': tfidf_ae}
 
-    consensus = Consensus(X, options,
+    evaluator = Evaluator(X, options,
                           parameters=parameters,
                           definitions=definitions,
                           precompute='features')
-    consensus.fit()
-    print_metrics(consensus_metrics(consensus, y))
+    results = evaluator.random_search(n_samples=50, criterion='silhouette')
+    best_model = results['best_model']
 
-    # kmeans baseline with 20 clusters
-    baseline_config = {'model': 'mbkmeans',
-                       'model_parameters': {'n_clusters': 20},
-                       'transformation': 'tfidf_ae',
-                       'transformation_parameters':
-                           {'layer_dims': (512, 512, 512, 32)},
-                       'sample_indexes': None}
-    baseline_model = consensus.generator.cluster(baseline_config)['model']
-    print_metrics(ground_truth_metrics(y, baseline_model.labels_))
+    print('BEST MODEL RESULTS')
+    print_metrics(ground_truth_metrics(y, best_model.labels_))
 
 
 if __name__ == '__main__':

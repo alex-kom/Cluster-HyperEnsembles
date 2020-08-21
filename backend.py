@@ -14,7 +14,7 @@ def hac(params, X):
     '''
     Fit and return an AgglomerativeClustering model.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, n_observations)
@@ -30,7 +30,7 @@ def hacsingle(params, X):
     '''
     Fit and return an AgglomerativeClustering model with single linkage.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, n_observations)
@@ -44,7 +44,7 @@ def hacaverage(params, X):
     '''
     Fit and return an AgglomerativeClustering model with average linkage.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, n_observations)
@@ -58,7 +58,7 @@ def mbkmeans(params, X):
     '''
     Fit and return a MiniBatchKMeans model.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, n_features)
@@ -70,7 +70,7 @@ def kmeans(params, X):
     '''
     Fit and return a KMeans model.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, n_features)
@@ -82,7 +82,7 @@ def dbscan(params, X):
     '''
     Fit and return a DBSCAN model.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, n_observations)
@@ -98,7 +98,7 @@ def svd(params, X):
     Fit a TruncatedSVD model on l2-normalized data and return the
     transformed data.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, n_features)
@@ -109,9 +109,9 @@ def svd(params, X):
 
 def autoencoder(params, X):
     '''
-    Fit an Autoencoder model and return transformed and l2-normalized data.
+    Fit an Autoencoder model and return encoded and l2-normalized data.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, n_features)
@@ -124,10 +124,10 @@ def autoencoder(params, X):
 
 def convautoencoder(params, X):
     '''
-    Fit a ConvoluationalAutoencoder model and return transformed
-    and l2-normalized data.
+    Fit a ConvoluationalAutoencoder model and return encoded and l2-normalized
+    data.
 
-    Parameters:
+    Arguments:
         params : dict
             The parameters of the model.
         X : ndarray of shape (n_observations, width, height, channels)
@@ -140,9 +140,9 @@ def convautoencoder(params, X):
 
 def rbf(params, X):
     '''
-    Compute distances with an rbf metric.
+    Compute and return distances with an rbf metric.
 
-    Parameters:
+    Arguments:
         params : dict
             Parameters for computing the rbf distances.
         X : ndarray of shape (n_observations, n_features)
@@ -157,14 +157,14 @@ def rbf(params, X):
 
 class Executor:
     '''
-    Compute clustering models, feature transformations and distances.
+    Select and call transformation and clustering functions from configurations.
 
-    Parameters:
+    Arguments:
         definitions : dict
-            Dict mapping function names to function definitions.
-            Extends and/or overwrites the default definitions.
+            Dict mapping function names of clustering algorithms,
+            feature transformations, and distance metrics to function
+            objects. Extends and/or overwrites the default definitions.
     '''
-
     definitions = {'hac': hac,
                    'hacsingle': hacsingle,
                    'hacaverage': hacaverage,
@@ -184,7 +184,7 @@ class Executor:
         '''
         Fit and return a clustering model.
 
-        Parameters:
+        Arguments:
             config : dict
                 Configuration of the clustering.
             X : ndarray of shape (n_observations, n_features)
@@ -196,9 +196,9 @@ class Executor:
 
     def transform(self, config, X):
         '''
-        Compute and return transformated features.
+        Compute and return an ndarray of transformed features.
 
-        Parameters:
+        Arguments:
             config : dict
                 Configuration of the clustering.
             X : ndarray of shape (n_observations, n_features)
@@ -209,9 +209,9 @@ class Executor:
 
     def compute_distances(self, config, X):
         '''
-        Compute and return distances between observations.
+        Compute and return an ndarray of distances between observations.
 
-        Parameters:
+        Arguments:
             config : dict
                 Configuration of the clustering.
             X : ndarray of shape (n_observations, n_features)
