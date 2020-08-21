@@ -1,5 +1,5 @@
 # Cluster-HyperEnsembles
-Ensembles and hyperparameter search of clustering pipelines.
+Ensembles and hyperparameter optimization for clustering pipelines.
 
 A clustering pipeline consists of learning and applying a feature transformation,
 computing distances between observations, and fitting a clustering model.
