@@ -17,31 +17,33 @@ from cluster assignments, and fitting a hierarchical clustering model on the
 similarity matrix. The silhouette score is used to estimate the number of clusters for the final clustering.
 
 ## Hyperparameter Search
-An alternative to clustering aggregation is searching for a single configuration
-that optimizes a clustering evaluation metric. Commonly used intrinsic and extrinsic clustering
+An alternative to multiple clusterings aggregation is searching for a single configuration
+optimized for a clustering evaluation metric. Commonly used intrinsic and extrinsic clustering
 evaluation metrics can be used in a randomized or pre-specified configuration search.
 
 ## Specifying a HyperEnsemble
-A HyperEnsemble can be fully specified with three dictionaries: *options*, *parameters* and *definitions*.
+A HyperEnsemble can be fully specified with three dictionaries: **options**, **parameters** and **definitions**.
 
 ### options
 A dictionary mapping parameter keys to parameter values for the clustering algorithms,
 feature transformations, distance computations, and the rate of observation subsampling. 
 A categorical distribution over values can be specified by
-setting a parameter value with a dict containing either the `choices`
-or `irange` key. The `weights` key can be used to define the probability
-of each item, or omitted for a uniform distribution.
+setting a parameter value with a dict containing either the `'choices'`
+or `'irange'` key. 
+`'choices'` is used to provide the possible parameter values explicitly, while `'irange'` is used
+to specify a range of ints in the same way as for the `range()` function.
+The `'weights'` key can be used to define the probability for each possible value, or omitted for a uniform distribution.
 
 Examples: \
 `options = {'n_clusters': {'irange': [2, 5]}}` \
-The `n_clusters` value will be chosen among 2, 3 or 4 with equal probability.\
+The `'n_clusters'` value will be chosen among 2, 3 or 4 with equal probability.\
 `options = {'n_clusters': {'choices': [2, 3, 4], 'weights': [1, 2, 1]}}`\
-The `n_clusters` value will be chosen among 2, 3 or 4 with probability proportional to the values in the `weights` list.
+The `'n_clusters'` value will be chosen among 2, 3 or 4 with probability proportional to the values in the `'weights'` list.
 
 ### parameters
 A dictionary specifying the dependencies between parameters in the options dict.
 For example, `parameters = {'hac': ['n_clusters', 'linkage', 'metric']}`
-means that option `hac` requires `n_clusters`, `linkage` and `metric` to be specified.
+means that option `'hac'` requires `'n_clusters'`, `'linkage'` and `'metric'` to be specified.
 Providing a parameters dict extends and/or overwrites items in the default parameters dict.\
 The default parameters dict is
 ```
@@ -67,7 +69,7 @@ Any custom function passed to the definitions dict should implement the followin
 `customfunc(params, X)`\
 where `params` is a dict mapping parameter keys to values and `X` is the data matrix.
 Feature transformations should return an ndarray of shape `(n_observations, n_features)`
-and distance computations should return a distance matrix: a symmetric ndarray of shape `(n_observations, n_observations)`
+and distance computations should return a distance matrix: ndarray of shape `(n_observations, n_observations)`
 with zeros in the main diagonal.
 Custom functions implementing clustering algorithms should return an object with a `labels_` attribute,
 an ndarray of shape `(n_observations,)` that contains cluster indexes for each observation.
@@ -83,17 +85,23 @@ options = {'model': {'choices': ['hac', 'kmeans']},
            'n_components': {'choices': [5, 10]}
            }
 ```
-Fit a consensus clustering model \
-`consensus_model = Consensus(X, options, precompute='distances').fit()`\
+Fit a consensus clustering model
+```
+from consensus import Consensus
+consensus_model = Consensus(X, options, precompute='distances').fit()
+```
 
-Sample and evaluate configurations \
-`results = Evaluator(X, options, precompute='distances').random_search()` \
+Sample and evaluate configurations
+```
+from evaluation import Evaluator
+results = Evaluator(X, options, precompute='distances').random_search()
+```
 
 See `examples.py` for more applications.
 
 ## Dimensionality reduction
 Implementations of an autoencoder with fully-connected layers and a convolutional autoencoder
-are provided in `autoencoder.py`.
+are provided in `autoencoders.py`.
 Both models estimate low dimensional codes by minimizing the reconstruction
 loss of encoding and decoding through a lower dimensional bottleneck.
 
