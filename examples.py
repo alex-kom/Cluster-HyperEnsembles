@@ -52,6 +52,7 @@ def cluster_artificial():
     is plotted and evaluated.
     '''
     import matplotlib.pyplot as plt
+
     options = {'model': {'choices': ['hacsingle', 'hacaverage',
                                      'kmeans', 'dbscan']},
                'metric': 'rbf',
@@ -108,6 +109,7 @@ def cluster_mnist():
     Evaluation metrics are computed for the ensemble and for a kmeans baseline.
     '''
     import requests
+
     r = requests.get('https://s3.amazonaws.com/img-datasets/mnist.npz')
     data = np.load(BytesIO(r.content))
     X = data['x_test']

@@ -138,7 +138,7 @@ class ConvolutionalAutoencoder:
     Convolutional autoencoder model.
 
     Arguments:
-        kernel_shapes : Array-like of tuples of ints.
+        kernel_shapes : array-like of tuples of ints.
             The shapes of the convolution layer kernels. Each shape is of the
             form (height, width, number of filters).
         h_dim : int
