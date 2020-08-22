@@ -29,7 +29,7 @@ class Autoencoder:
     '''
 
     def __init__(self,
-                 layer_dims=[32, 16],
+                 layer_dims=(32, 16),
                  activation='relu',
                  output_activation='linear',
                  initializer='glorot_uniform',
@@ -138,7 +138,7 @@ class ConvolutionalAutoencoder:
     Convolutional autoencoder model.
 
     Arguments:
-        kernel_shapes : List of tuples of ints.
+        kernel_shapes : Array-like of tuples of ints.
             The shapes of the convolution layer kernels. Each shape is of the
             form (height, width, number of filters).
         h_dim : int
@@ -162,7 +162,7 @@ class ConvolutionalAutoencoder:
     '''
 
     def __init__(self,
-                 kernel_shapes=[(5, 5, 32), (5, 5, 64)],
+                 kernel_shapes=((5, 5, 32), (5, 5, 64)),
                  h_dim=16,
                  strides=2,
                  activation='elu',

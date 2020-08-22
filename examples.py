@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import requests
 from io import BytesIO
 from itertools import cycle, islice
 
@@ -53,6 +51,7 @@ def cluster_artificial():
     The same options are used for all 6 generated datasets. Each clustering
     is plotted and evaluated.
     '''
+    import matplotlib.pyplot as plt
     options = {'model': {'choices': ['hacsingle', 'hacaverage',
                                      'kmeans', 'dbscan']},
                'metric': 'rbf',
@@ -108,6 +107,7 @@ def cluster_mnist():
     to the definitions dict and its parameters specified in the parameters dict.
     Evaluation metrics are computed for the ensemble and for a kmeans baseline.
     '''
+    import requests
     r = requests.get('https://s3.amazonaws.com/img-datasets/mnist.npz')
     data = np.load(BytesIO(r.content))
     X = data['x_test']
